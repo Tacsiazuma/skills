@@ -27,6 +27,8 @@ A personal [Claude Code](https://claude.com/claude-code) skill collection, packa
 | Skill | What it does |
 |-------|--------------|
 | `clarify` | Runs an interrogation session — asks one focused question at a time to turn a vague request into a clear, actionable understanding. |
+| `grug` | Channels grugbrain.dev — fights complexity, says no, favors the boring 85% solution. Plain prose, cites grug principles. |
+| `grug-review` | Reviews a diff for complexity only, one line per finding (`say-no`, `cut-point`, `demon`, ...). |
 
 ## Installation
 
