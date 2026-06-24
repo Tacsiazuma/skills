@@ -24,6 +24,7 @@ Drive a back-and-forth interrogation session that turns a fuzzy request into a p
    - **Scope** — what's in, what's explicitly out? How big is this?
    - **Success criteria** — how will we know it's done and correct? What does "good" look like?
    - **Constraints** — deadlines, tech/stack limits, things that must not change, non-negotiables.
+   - **Security & trust** — who can access or trigger this? Is there auth/authz involved? What data is sensitive? What happens if it's abused or called by an untrusted party? Even if security seems out of scope, name the assumption explicitly.
    - **Edge cases & failure modes** — what should happen when things go wrong or input is unexpected?
    - **Audience / context** — who uses or reads the result, and in what environment?
 
@@ -31,7 +32,9 @@ Drive a back-and-forth interrogation session that turns a fuzzy request into a p
 
 3. **Stop when it's clear enough.** End the session once you could confidently act without guessing on anything that matters. Don't pad it with low-value questions — over-interrogation is a failure mode too.
 
-4. **Write a summary.** Produce a short, structured recap of what was settled:
+4. **Resolve before you close.** Before writing the summary, scan for anything still unresolved. If something is genuinely unresolvable without the user, ask one more targeted question rather than leaving it open. Only record a remaining open question if it truly cannot be answered now and does not block starting work.
+
+5. **Write a summary.** Produce a short, structured recap of what was settled:
 
    ```markdown
    ## Clarified understanding
@@ -41,10 +44,12 @@ Drive a back-and-forth interrogation session that turns a fuzzy request into a p
    **Out of scope:** ...
    **Success criteria:** ...
    **Constraints:** ...
-   **Open questions / assumptions:** ...
+   **Security assumptions:** ...
+   **Assumptions made:** ...
+   **Remaining open questions:** ...
    ```
 
-   List anything still unresolved as an explicit assumption or open question rather than silently guessing.
+   `Remaining open questions` should be empty or near-empty. If it isn't, the session ended too early. Each assumption should be explicit enough that the user can contradict it if wrong.
 
 ## Notes
 
