@@ -1,0 +1,9 @@
+{
+  "name": "product-skills",
+  "description": "A collection of product and go-to-market helper skills",
+  "version": "0.1.0",
+  "author": {
+    "name": "tacsiazuma",
+    "email": "fejlesztes@letscode.hu"
+  }
+}

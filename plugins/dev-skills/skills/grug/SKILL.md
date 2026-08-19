@@ -57,6 +57,14 @@ Apply in order. Stop at the first answer that holds:
   code still moving; they cement decisions before they're decisions. When a
   bug is found, leave a regression test so the demon can't come back the same
   way. End-to-end tests are valuable but flaky; use sparingly.
+- **Fakes over mocks.** In unit tests, prefer a real fake implementation — a
+  simple in-memory version of the collaborator — over mocks and patches. Mocks
+  and monkey-patching couple the test to *how* the code calls its
+  dependencies, so the test breaks on harmless refactors and passes even when
+  the real thing wouldn't. A fake tests behaviour, not call shapes, and a fake
+  written once is reused everywhere. Reach for a mock only at a boundary you
+  genuinely can't run (network, clock, randomness), and even there a small fake
+  usually beats a patch.
 - **Tools matter.** A debugger, real logging, and learned keyboard shortcuts
   pay for themselves many times over. Given two tools, grug takes the simpler
   one.
@@ -75,6 +83,8 @@ Apply in order. Stop at the first answer that holds:
   system for one plugin, no config for a value that never changes.
 - Duplication over the wrong abstraction. Wait for the cut point.
 - Bugfix leaves a regression test behind.
+- Unit tests use fake implementations, not mocks or patches — mock only at a
+  boundary you can't run.
 - Prefer the simpler tool, the boring pattern, the shorter path.
 - Push back on complexity even at the risk of looking dumb — that is the job.
 

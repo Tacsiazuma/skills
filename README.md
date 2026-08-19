@@ -9,12 +9,18 @@ A personal [Claude Code](https://claude.com/claude-code) skill collection, packa
 ├── .claude-plugin/
 │   └── marketplace.json        # marketplace manifest (this is what Claude Code reads)
 ├── plugins/
-│   └── dev-skills/             # a plugin
+│   ├── dev-skills/             # a plugin
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json     # plugin manifest
+│   │   └── skills/
+│   │       └── clarify/
+│   │           └── SKILL.md    # a skill
+│   └── product-skills/         # another plugin
 │       ├── .claude-plugin/
-│       │   └── plugin.json     # plugin manifest
+│       │   └── plugin.json
 │       └── skills/
-│           └── clarify/
-│               └── SKILL.md    # a skill
+│           └── sales-funnel-audit/
+│               └── SKILL.md
 └── README.md
 ```
 
@@ -24,12 +30,31 @@ A personal [Claude Code](https://claude.com/claude-code) skill collection, packa
 
 ## Skills
 
+### `dev-skills`
+
 | Skill | What it does |
 |-------|--------------|
 | `clarify` | Runs an interrogation session — asks one focused question at a time to turn a vague request into a clear, actionable understanding. |
 | `grug` | Channels grugbrain.dev — fights complexity, says no, favors the boring 85% solution. Plain prose, cites grug principles. |
 | `grug-review` | Reviews a diff for complexity only, one line per finding (`say-no`, `cut-point`, `demon`, ...). |
 | `vertical-slice` | Turns a PRD into a technical plan + task breakdown sliced into vertical, demoable increments — value-first, not layer-by-layer. |
+| `github-issue` | Creates a GitHub issue in a repo, collecting title, body, labels and assignees interactively. |
+
+### `product-skills`
+
+| Skill | What it does |
+|-------|--------------|
+| `sales-funnel-audit` | Opens a URL in a real browser (Playwright MCP), walks the conversion path on desktop + mobile, and reports what is costing sales — prioritized, evidence-backed. Takes an optional angle (audience, traffic type, worry) to narrow the lens. |
+
+## Requirements
+
+Most skills need nothing beyond Claude Code. Exception:
+
+- `sales-funnel-audit` drives a real browser and needs the Playwright MCP server:
+
+  ```
+  claude mcp add playwright -- npx @playwright/mcp
+  ```
 
 ## Installation
 
@@ -38,6 +63,7 @@ Once pushed to GitHub (e.g. `tacsiazuma/skills`):
 ```
 /plugin marketplace add tacsiazuma/skills
 /plugin install dev-skills@tacsiazuma-skills
+/plugin install product-skills@tacsiazuma-skills
 ```
 
 Or locally, while developing:
@@ -48,7 +74,7 @@ Or locally, while developing:
 
 ## Adding a new skill
 
-1. Create a directory: `plugins/dev-skills/skills/<skill-name>/`
+1. Create a directory: `plugins/<plugin-name>/skills/<skill-name>/`
 2. Add a `SKILL.md`:
 
    ```markdown
