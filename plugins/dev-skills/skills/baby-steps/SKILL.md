@@ -19,6 +19,13 @@ small change at a time, with the reasoning attached.
   next move. The reasoning is the point; don't skip it.
 - **No change before approval.** Until the user approves, do not create, edit or
   delete any file. Show the proposed change only as a diff in a code block.
+- **The diff is in the approval prompt.** The user must see the exact change at
+  the moment they decide. Never show the diff in one message and ask for
+  approval separately — an approval dialog can hide the preceding chat text,
+  and the change lands unseen.
+- **Show it all, verbatim.** Never summarize or abbreviate the diff (no `...`,
+  no `{ ... }`, no "rest unchanged"). Apply only what was shown verbatim. If
+  the diff is too long to show in full, the step is too big — split it.
 - **Small steps.** One logical change, typically ~20 lines or fewer — e.g. adding
   one function, the boilerplate of one endpoint, one new `if` branch. If a step
   grows bigger, split it.
@@ -45,10 +52,20 @@ suggest the `clarify` or `vertical-slice` skill instead.
    - **What:** the change, in one or two sentences.
    - **Why:** why this step, why now, why this way.
    - **Diff:** the planned change as a unified diff in a ```diff code block
-     (new files shown as additions). Nothing is written to disk yet.
+     (new files shown as additions), complete and verbatim. Nothing is
+     written to disk yet.
 
-2. **Ask for approval.** Use the `AskUserQuestion` tool if it is available;
-   otherwise ask in plain chat. Offer these options:
+2. **Ask for approval — with the diff inside the prompt.**
+   - **With `AskUserQuestion`:** put the What/Why in the `question` text and
+     the full diff in the `preview` field of the **Approve** option (previews
+     render in a monospace box; use a single-select question). If the dialog
+     might not render previews, also include the diff in the `question` text.
+     Do not rely on a chat message sent before the dialog — it may be hidden.
+   - **In plain chat (fallback):** What, Why, the full diff and the approval
+     question go in the **same message**. Stop right after it and wait for the
+     answer.
+
+   Offer these options:
    - **Approve** — apply the change.
    - **Request changes** — the user says what to change.
    - **Reject** — the approach is wrong; propose a different one.
@@ -56,7 +73,8 @@ suggest the `clarify` or `vertical-slice` skill instead.
      for the current part.
 
 3. **Handle the answer.**
-   - *Approve:* apply exactly the shown diff. Do not commit.
+   - *Approve:* apply exactly the shown diff — nothing more, nothing less. Do
+     not commit.
    - *Request changes:* rework the step and show it again (back to 2).
    - *Reject:* propose a different approach as a new step (back to 1).
    - *Bigger step:* you may take larger steps, but **only for the current part**
@@ -79,6 +97,30 @@ suggest the `clarify` or `vertical-slice` skill instead.
 
 ## Step format
 
+With `AskUserQuestion` — everything the user needs is inside the call:
+
+~~~json
+{
+  "questions": [{
+    "header": "Next step",
+    "multiSelect": false,
+    "question": "Next step: add `parseDuration` returning minutes for \"1h30m\".\n\nWhy: the endpoint needs minutes; the failing test from the previous step pins this behavior, and parsing belongs in a pure helper so it stays testable.\n\nThe full diff is in the Approve option's preview. Apply it?",
+    "options": [
+      {
+        "label": "Approve",
+        "description": "Apply exactly the diff shown in the preview.",
+        "preview": "--- a/src/duration.ts\n+++ b/src/duration.ts\n@@ -0,0 +1,5 @@\n+export function parseDuration(input: string): number {\n+  const m = /^(?:(\\d+)h)?(?:(\\d+)m)?$/.exec(input);\n+  if (!m) throw new Error(`Invalid duration: ${input}`);\n+  return Number(m[1] ?? 0) * 60 + Number(m[2] ?? 0);\n+}"
+      },
+      { "label": "Request changes", "description": "Tell me what to change." },
+      { "label": "Reject", "description": "Wrong approach; propose another." },
+      { "label": "Allow a bigger step", "description": "Larger steps for the current part only." }
+    ]
+  }]
+}
+~~~
+
+Plain-chat fallback — one message, then stop:
+
 ~~~markdown
 **Next step:** Add `parseDuration` returning minutes for "1h30m".
 
@@ -88,9 +130,15 @@ pins this behavior, and parsing belongs in a pure helper so it stays testable.
 ```diff
 --- a/src/duration.ts
 +++ b/src/duration.ts
-@@ ...
-+export function parseDuration(input: string): number { ... }
+@@ -0,0 +1,5 @@
++export function parseDuration(input: string): number {
++  const m = /^(?:(\d+)h)?(?:(\d+)m)?$/.exec(input);
++  if (!m) throw new Error(`Invalid duration: ${input}`);
++  return Number(m[1] ?? 0) * 60 + Number(m[2] ?? 0);
++}
 ```
+
+Approve, request changes, reject, or allow a bigger step for this part?
 ~~~
 
 ## Notes
