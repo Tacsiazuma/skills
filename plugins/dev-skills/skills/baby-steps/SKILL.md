@@ -1,6 +1,6 @@
 ---
 name: baby-steps
-description: Implements a task in tiny, individually approved steps — proposes only the next small change (~20 lines), explains what and why, shows it as a diff without touching any file, and applies it only after the user approves; then runs the relevant tests/build and reports. Commits are proposed separately, never made automatically. Use when the user wants to stay in control of what goes into the code, review changes as they happen instead of one huge diff at the end, or says "baby steps", "step by step", "small steps", or "one step at a time".
+description: Implements a task in tiny, individually approved steps — proposes only the next small change (one file, ~20 lines), explains what and why, shows the full diff in the chat without touching any file, and applies it only after the user approves; then runs the relevant tests/build and reports. Commits are proposed separately, never made automatically. Use when the user wants to stay in control of what goes into the code, review changes as they happen instead of one huge diff at the end, or says "baby steps", "step by step", "small steps", or "one step at a time".
 ---
 
 # baby-steps
@@ -17,18 +17,22 @@ small change at a time, with the reasoning attached.
   lands.
 - **What and why.** Every step says what it changes and why this is the right
   next move. The reasoning is the point; don't skip it.
+- **One file per step.** A step creates, edits or deletes exactly one file. If
+  a logical change touches several files (e.g. a new function and its import
+  elsewhere), it is several consecutive steps.
 - **No change before approval.** Until the user approves, do not create, edit or
   delete any file. Show the proposed change only as a diff in a code block.
-- **The diff is in the approval prompt.** The user must see the exact change at
-  the moment they decide. Never show the diff in one message and ask for
-  approval separately — an approval dialog can hide the preceding chat text,
-  and the change lands unseen.
+- **Diff first, then ask.** Write the What, Why, file and full diff in a chat
+  message right before asking for approval. Do not put the diff in an
+  `AskUserQuestion` preview — it doesn't fit there. The approval question
+  itself names the file and says in one sentence what the change does, so the
+  user knows what they are deciding even if the dialog covers the chat.
 - **Show it all, verbatim.** Never summarize or abbreviate the diff (no `...`,
   no `{ ... }`, no "rest unchanged"). Apply only what was shown verbatim. If
   the diff is too long to show in full, the step is too big — split it.
-- **Small steps.** One logical change, typically ~20 lines or fewer — e.g. adding
-  one function, the boilerplate of one endpoint, one new `if` branch. If a step
-  grows bigger, split it.
+- **Small steps.** One logical change in one file, typically ~20 lines or
+  fewer — e.g. adding one function, the boilerplate of one endpoint, one new
+  `if` branch. If a step grows bigger, split it.
 - **Test first.** A test is its own step. The step after it makes the test pass.
 - **Never commit on your own.** Applying a step does not commit. Commits are
   proposed as separate steps with their own approval.
@@ -48,22 +52,20 @@ suggest the `clarify` or `vertical-slice` skill instead.
 
 ## The step loop
 
-1. **Propose the next step.** Briefly state:
+1. **Show the next step in the chat.** In one message, state:
    - **What:** the change, in one or two sentences.
    - **Why:** why this step, why now, why this way.
+   - **File:** the single file the step touches.
    - **Diff:** the planned change as a unified diff in a ```diff code block
      (new files shown as additions), complete and verbatim. Nothing is
      written to disk yet.
 
-2. **Ask for approval — with the diff inside the prompt.**
-   - **With `AskUserQuestion`:** put the What/Why in the `question` text and
-     the full diff in the `preview` field of the **Approve** option (previews
-     render in a monospace box; use a single-select question). If the dialog
-     might not render previews, also include the diff in the `question` text.
-     Do not rely on a chat message sent before the dialog — it may be hidden.
-   - **In plain chat (fallback):** What, Why, the full diff and the approval
-     question go in the **same message**. Stop right after it and wait for the
-     answer.
+2. **Ask for approval — right after the diff.**
+   - **With `AskUserQuestion`:** call it immediately after the message above,
+     single-select, **no `preview`**. The `question` names the file, sums up
+     the change in one sentence and says the full diff is above.
+   - **In plain chat (fallback):** the approval question goes at the end of the
+     same message as the diff. Stop right after it and wait for the answer.
 
    Offer these options:
    - **Approve** — apply the change.
@@ -75,11 +77,12 @@ suggest the `clarify` or `vertical-slice` skill instead.
 3. **Handle the answer.**
    - *Approve:* apply exactly the shown diff — nothing more, nothing less. Do
      not commit.
-   - *Request changes:* rework the step and show it again (back to 2).
+   - *Request changes:* rework the step and show it again (back to 1).
    - *Reject:* propose a different approach as a new step (back to 1).
    - *Bigger step:* you may take larger steps, but **only for the current part**
      (the current function, endpoint, test group or slice). When moving to the
-     next topic, return to small steps. Still show the diff and ask for approval.
+     next topic, return to small steps. Still one file per step, still show the
+     diff and ask for approval.
 
 4. **Verify.** After applying, run the relevant tests or build (the narrowest
    command that covers the change) and report the result briefly.
@@ -89,43 +92,24 @@ suggest the `clarify` or `vertical-slice` skill instead.
 
 5. **Propose a commit when a unit is complete.** When a larger logical unit is
    done (a feature slice, a passing test with its implementation, a refactor),
-   propose a commit as its own step: show the files and the commit message, and
-   ask for approval the same way. Commit only after explicit approval.
+   propose a commit as its own step: list the files and the commit message in
+   the chat, then ask for approval the same way. Commit only after explicit
+   approval.
 
 6. **Continue** with the next step (back to 1) until the task is done. Then say
    so in one or two sentences.
 
 ## Step format
 
-With `AskUserQuestion` — everything the user needs is inside the call:
-
-~~~json
-{
-  "questions": [{
-    "header": "Next step",
-    "multiSelect": false,
-    "question": "Next step: add `parseDuration` returning minutes for \"1h30m\".\n\nWhy: the endpoint needs minutes; the failing test from the previous step pins this behavior, and parsing belongs in a pure helper so it stays testable.\n\nThe full diff is in the Approve option's preview. Apply it?",
-    "options": [
-      {
-        "label": "Approve",
-        "description": "Apply exactly the diff shown in the preview.",
-        "preview": "--- a/src/duration.ts\n+++ b/src/duration.ts\n@@ -0,0 +1,5 @@\n+export function parseDuration(input: string): number {\n+  const m = /^(?:(\\d+)h)?(?:(\\d+)m)?$/.exec(input);\n+  if (!m) throw new Error(`Invalid duration: ${input}`);\n+  return Number(m[1] ?? 0) * 60 + Number(m[2] ?? 0);\n+}"
-      },
-      { "label": "Request changes", "description": "Tell me what to change." },
-      { "label": "Reject", "description": "Wrong approach; propose another." },
-      { "label": "Allow a bigger step", "description": "Larger steps for the current part only." }
-    ]
-  }]
-}
-~~~
-
-Plain-chat fallback — one message, then stop:
+First, the chat message with the step:
 
 ~~~markdown
 **Next step:** Add `parseDuration` returning minutes for "1h30m".
 
 **Why:** The endpoint needs minutes; the failing test from the previous step
 pins this behavior, and parsing belongs in a pure helper so it stays testable.
+
+**File:** `src/duration.ts`
 
 ```diff
 --- a/src/duration.ts
@@ -137,15 +121,38 @@ pins this behavior, and parsing belongs in a pure helper so it stays testable.
 +  return Number(m[1] ?? 0) * 60 + Number(m[2] ?? 0);
 +}
 ```
-
-Approve, request changes, reject, or allow a bigger step for this part?
 ~~~
+
+Then, right after it, the approval dialog — short, no preview:
+
+~~~json
+{
+  "questions": [{
+    "header": "Next step",
+    "multiSelect": false,
+    "question": "src/duration.ts: add parseDuration, which turns \"1h30m\" into minutes. The full diff is shown above. Apply it?",
+    "options": [
+      { "label": "Approve", "description": "Apply exactly the diff shown above." },
+      { "label": "Request changes", "description": "Tell me what to change." },
+      { "label": "Reject", "description": "Wrong approach; propose another." },
+      { "label": "Allow a bigger step", "description": "Larger steps for the current part only." }
+    ]
+  }]
+}
+~~~
+
+Plain-chat fallback: the same message as above, ending with
+"Approve, request changes, reject, or allow a bigger step for this part?" —
+then stop.
 
 ## Notes
 
 - If you notice the next step can't be small (e.g. a generated file, a large
   move), say so and suggest asking for a bigger step rather than splitting it
   artificially.
+- If a change only works when several files change together (e.g. a rename),
+  still go one file per step, and say up front that the code won't build until
+  the last of those steps lands.
 - Don't batch several logical changes into one "small" step to save rounds.
 - The skill works in any environment; it does not rely on any office-specific
   tooling.
