@@ -102,6 +102,17 @@ copilot plugin install product-skills@tacsiazuma-skills
 
 ### `install.sh`
 
+One-liner (no clone; downloads the repo to a temp dir; options go after `-s --`):
+
+```
+curl -fsSL https://raw.githubusercontent.com/Tacsiazuma/skills/main/install.sh | bash -s -- --tool copilot
+curl -fsSL https://raw.githubusercontent.com/Tacsiazuma/skills/main/install.sh | bash -s -- --tool cursor --scope project clarify grug
+```
+
+Set `SKILLS_REF=<branch|tag>` to install from something other than `main`. `--mode symlink` needs a local clone. Overwrite prompts read from the terminal (`/dev/tty`); without one, existing skills are skipped unless `--force`.
+
+Or from a clone:
+
 ```
 git clone https://github.com/tacsiazuma/skills && cd skills
 ./install.sh --tool copilot --scope project --project-dir ~/code/myapp

@@ -4,7 +4,16 @@
 # <dir>/<skill>/SKILL.md (Agent Skills) format, so no conversion is needed.
 set -euo pipefail
 
-REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
+STREAMED=0
+if [ ! -d "$REPO/plugins" ]; then
+  # Run via `curl ... | bash`: fetch the repo into a temp dir.
+  URL="${SKILLS_TARBALL_URL:-https://github.com/Tacsiazuma/skills/archive/refs/heads/${SKILLS_REF:-main}.tar.gz}"
+  REPO="$(mktemp -d)"
+  trap 'rm -rf "$REPO"' EXIT
+  curl -fsSL "$URL" | tar -xz -C "$REPO" --strip-components=1
+  STREAMED=1
+fi
 
 usage() {
   cat <<USAGE
@@ -56,6 +65,7 @@ case "$tool" in
   cursor)  user_dir="$HOME/.cursor/skills";  proj_rel=".cursor/skills" ;;
   *) echo "--tool must be claude, copilot, codex or cursor" >&2; usage >&2; exit 2 ;;
 esac
+[ "$STREAMED" = 1 ] && [ "$mode" = symlink ] && { echo "--mode symlink needs a local clone" >&2; exit 2; }
 case "$mode" in copy|symlink) ;; *) echo "--mode must be copy or symlink" >&2; exit 2 ;; esac
 case "$scope" in
   user) dest="$user_dir" ;;
@@ -73,8 +83,8 @@ for s in "${skills[@]}"; do
   target="$dest/$s"
   if [ -e "$target" ] || [ -L "$target" ]; then
     if [ "$force" = 0 ]; then
-      if [ -t 0 ]; then
-        read -r -p "$target exists. Overwrite? [y/N] " ans
+      if { : </dev/tty; } 2>/dev/null; then
+        read -r -p "$target exists. Overwrite? [y/N] " ans </dev/tty
         case "$ans" in y|Y) ;; *) echo "skipped $s"; continue ;; esac
       else
         echo "skipped $s ($target exists; use --force to overwrite)"; continue
