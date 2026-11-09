@@ -50,7 +50,7 @@ A personal [Claude Code](https://claude.com/claude-code) skill collection, packa
 
 ## Requirements
 
-Most skills need nothing beyond Claude Code. Exception:
+Most skills need nothing beyond the agent itself. Exception:
 
 - `sales-funnel-audit` drives a real browser and needs the Playwright MCP server:
 
@@ -60,7 +60,11 @@ Most skills need nothing beyond Claude Code. Exception:
 
 ## Installation
 
-Once pushed to GitHub (e.g. `tacsiazuma/skills`):
+Every tool below reads skills in the same Agent Skills format (`<skills-dir>/<skill>/SKILL.md` with `name` + `description` frontmatter), so no conversion is needed. Paths were checked against each tool's official docs (see [Sources](#sources)).
+
+### Claude Code
+
+**Marketplace** (once pushed to GitHub, e.g. `tacsiazuma/skills`):
 
 ```
 /plugin marketplace add tacsiazuma/skills
@@ -68,11 +72,62 @@ Once pushed to GitHub (e.g. `tacsiazuma/skills`):
 /plugin install product-skills@tacsiazuma-skills
 ```
 
-Or locally, while developing:
+Or locally, while developing: `/plugin marketplace add /path/to/skills`
+
+**Manual** (no marketplace): `./install.sh --tool claude` → `~/.claude/skills/` (user) or `.claude/skills/` (project, `--scope project`).
+
+### GitHub Copilot
+
+**Marketplace** (Copilot CLI reads the same `.claude-plugin/marketplace.json`):
 
 ```
-/plugin marketplace add /home/tacsiazuma/work/skills
+copilot plugin marketplace add tacsiazuma/skills
+copilot plugin install dev-skills@tacsiazuma-skills
+copilot plugin install product-skills@tacsiazuma-skills
 ```
+
+**Manual:** `./install.sh --tool copilot` → `~/.copilot/skills/` (user) or `.github/skills/` (project). Works in Copilot CLI, VS Code agent mode, and the cloud agent (project skills only there; personal skills are not automatically available in the cloud).
+
+### Codex
+
+**Marketplace:** the Codex docs I could read describe plugin import from GitHub only in the ChatGPT admin UI (Admin → Plugins, which accepts `.claude-plugin/marketplace.json`), and a `/plugins` browser in the CLI. I could not verify a documented CLI command to add this repo as a marketplace, so use the manual install below.
+
+**Manual:** `./install.sh --tool codex` → `~/.agents/skills/` (user) or `.agents/skills/` (project). Codex follows symlinked skill folders. Restart Codex if a new skill does not show up.
+
+### Cursor
+
+**Marketplace:** this repo ships `.cursor-plugin/marketplace.json` and a `.cursor-plugin/plugin.json` per plugin. In Cursor: Dashboard → Plugins & MCPs → Add Marketplace → Import from Repo → paste the repo URL (team marketplaces). *Not tested by me; written from the Cursor docs, which document no CLI command.*
+
+**Manual:** `./install.sh --tool cursor` → `~/.cursor/skills/` (user) or `.cursor/skills/` (project).
+
+### `install.sh`
+
+```
+git clone https://github.com/tacsiazuma/skills && cd skills
+./install.sh --tool copilot --scope project --project-dir ~/code/myapp
+./install.sh --tool codex clarify grug        # only some skills
+./install.sh --tool cursor --mode symlink     # stay in sync with this checkout
+./install.sh --list
+```
+
+Options: `--tool claude|copilot|codex|cursor` (required), `--scope user|project` (default `user`), `--mode copy|symlink` (default `copy`), `--project-dir DIR` (default: current dir), `--force`, `--list`, then an optional list of skills (default: all). An existing skill is never overwritten without confirmation; non-interactively it is skipped unless `--force` is given.
+
+### `sales-funnel-audit` needs Playwright MCP
+
+Whichever tool you use, `sales-funnel-audit` drives a real browser and needs the Playwright MCP server configured in that tool (command: `npx @playwright/mcp`):
+
+- Claude Code: `claude mcp add playwright -- npx @playwright/mcp`
+- Copilot (CLI): add it with `/mcp add`, or in `~/.copilot/mcp-config.json`; VS Code: `.vscode/mcp.json`
+- Codex: `codex mcp add playwright -- npx @playwright/mcp`
+- Cursor: `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (user), with `"command": "npx", "args": ["@playwright/mcp"]`
+
+*The MCP configuration commands/paths above are from my knowledge of those tools and were not verified against the docs; check each tool's MCP docs.*
+
+### Sources
+
+- Copilot: docs.github.com — "About agent skills", "Creating agent skills", Copilot CLI plugin reference; VS Code "Agent Skills"
+- Codex: learn.chatgpt.com/docs/build-skills (formerly developers.openai.com/codex/skills)
+- Cursor: cursor.com/docs/context/skills, cursor.com/docs/plugins
 
 ## Adding a new skill
 
