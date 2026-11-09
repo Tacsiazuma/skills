@@ -46,6 +46,7 @@ A personal [Claude Code](https://claude.com/claude-code) skill collection, packa
 | Skill | What it does |
 |-------|--------------|
 | `sales-funnel-audit` | Opens a URL in a real browser (Playwright MCP), walks the conversion path on desktop + mobile, and reports what is costing sales — prioritized, evidence-backed. Takes an optional angle (audience, traffic type, worry) to narrow the lens. |
+| `shall-we` | Evaluates whether an idea is worth building — asks focused questions one at a time, then delivers a yes / no / later verdict with reasoning and what would need to be true for a "yes". Moved here from the archived `Tacsiazuma/shall-we` repo. |
 
 ## Requirements
 
