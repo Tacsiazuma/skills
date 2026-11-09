@@ -33,7 +33,12 @@ small change at a time, with the reasoning attached.
 - **Small steps.** One logical change in one file, typically ~20 lines or
   fewer — e.g. adding one function, the boilerplate of one endpoint, one new
   `if` branch. If a step grows bigger, split it.
-- **Test first.** A test is its own step. The step after it makes the test pass.
+- **Test first, typically.** A new test is usually its own step, and the next
+  step usually makes it pass — but this is a habit, not a rule. Steps don't
+  strictly follow TDD phases.
+- **Red is fine between steps.** A step does not have to end with green tests;
+  a temporarily failing test is accepted. Never make a step bigger just to get
+  back to green — small, reviewable steps beat a green state.
 - **Never commit on your own.** Applying a step does not commit. Commits are
   proposed as separate steps with their own approval.
 - **Speak the user's language.** Reply in the language the user writes in.
@@ -86,12 +91,15 @@ suggest the `clarify` or `vertical-slice` skill instead.
 
 4. **Verify.** After applying, run the relevant tests or build (the narrowest
    command that covers the change) and report the result briefly.
-   - A test written in the previous step is expected to fail — say so.
-   - If something fails unexpectedly, report it and propose the fix as a
-     **separate step**. Never fix silently.
+   - Red tests are information, not an alarm: report what fails and why (e.g.
+     a test written in the previous step, or an expected gap).
+   - Then propose the next **small** step — either the fix or the planned
+     continuation, whichever is the better next move. Never fix silently.
+   - **Never** propose a bigger change just to get back to green; that defeats
+     the point of small, easy-to-review steps.
 
 5. **Propose a commit when a unit is complete.** When a larger logical unit is
-   done (a feature slice, a passing test with its implementation, a refactor),
+   done (a feature slice, a test with its implementation, a refactor),
    propose a commit as its own step: list the files and the commit message in
    the chat, then ask for approval the same way. Commit only after explicit
    approval.
@@ -153,6 +161,8 @@ then stop.
 - If a change only works when several files change together (e.g. a rename),
   still go one file per step, and say up front that the code won't build until
   the last of those steps lands.
+- Don't chase green: if tests are red after a step, the next step is still
+  one small change, not a catch-up batch.
 - Don't batch several logical changes into one "small" step to save rounds.
 - The skill works in any environment; it does not rely on any office-specific
   tooling.
