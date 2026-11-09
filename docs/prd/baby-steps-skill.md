@@ -37,8 +37,8 @@ Egy lépés menete:
 - Új `SKILL.md`: `plugins/dev-skills/skills/baby-steps/SKILL.md`, angol nyelven, mint a többi skill. Az agent a felhasználó nyelvén kommunikál.
 - Bejegyzés a `README.md` skill-táblázatába.
 - Lépésméret: egy logikai változás, jellemzően 20 sor vagy kevesebb. Példák: egy függvény hozzáadása, egy endpoint boilerplate-je, egy új `if` ág.
-- Teszt-először működés: a teszt is külön baby step, a következő lépés teszi zölddé.
-- Minden alkalmazott lépés után a releváns tesztek vagy a build futtatása, az eredmény jelentése.
+- Teszt-először szemlélet: a teszt jellemzően külön baby step, a következő lépés teszi zölddé. A lépések **nem követik szigorúan a TDD fázisait**, és nem kell mindegyiknek zöld teszttel végződnie: a köztes piros állapot elfogadott.
+- Minden alkalmazott lépés után a releváns tesztek vagy a build futtatása, az eredmény jelentése (a piros eredmény is csak információ, nem hiba).
 - Jóváhagyás kérése abban a formában, ami az adott környezetben elérhető. Az `AskUserQuestion` az előnyben részesített, ha van.
 - Commit javasolása nagyobb logikai egység után, külön lépésként.
 
@@ -53,7 +53,7 @@ Egy lépés menete:
 
 - Nincs olyan diff, amit a felhasználó egyben, indoklás nélkül kapna meg: minden változás egy javasolt, megindokolt lépésként érkezik.
 - Jóváhagyás előtt a fájlrendszer nem változik.
-- Egy tipikus lépés diffje nagyjából 20 sor vagy kisebb.
+- Egy tipikus lépés diffje nagyjából 20 sor vagy kisebb, akkor is, ha emiatt a teszt köztesen piros marad.
 - A felhasználó minden lépésnél látja a miértet, és a négy válasz (jóváhagy, módosít, elvet, nagyobb lépés) mindegyike kezelve van.
 - Commit csak külön javaslatra és külön jóváhagyás után készül.
 
@@ -67,6 +67,6 @@ Egy lépés menete:
 Feltevések (a kód vagy az észszerű alapértelmezés eldönti, nem kérdéses):
 
 - A "nagyobb lépés engedélyezése" az adott résznél érvényes, a következő témánál az agent visszatér a kis lépésekhez.
-- Ha egy lépés tesztje elbukik, az agent ezt jelenti, és a javítást külön lépésként javasolja, nem módosít csendben.
+- Ha egy lépés után a teszt piros, az agent ezt jelenti, és a következő kis lépést javasolja (akár a javítást, akár a tervezett folytatást), nem módosít csendben. **Piros teszt miatt soha nem javasol nagyobb változtatást**: a kis, könnyen átnézhető lépések elve erősebb, mint a zöld állapot.
 - A diff megmutatása szövegesen történik (kódblokk), nem kell hozzá külön eszköz.
 - Egy kérés kapcsán nincs nyitott kérdés, amit a felhasználó még meg tudna válaszolni.
