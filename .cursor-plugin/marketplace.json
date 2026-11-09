@@ -1,0 +1,19 @@
+{
+  "name": "tacsiazuma-skills",
+  "owner": {
+    "name": "tacsiazuma",
+    "email": "fejlesztes@letscode.hu"
+  },
+  "plugins": [
+    {
+      "name": "dev-skills",
+      "source": "plugins/dev-skills",
+      "description": "A collection of development helper skills"
+    },
+    {
+      "name": "product-skills",
+      "source": "plugins/product-skills",
+      "description": "A collection of product and go-to-market helper skills"
+    }
+  ]
+}
