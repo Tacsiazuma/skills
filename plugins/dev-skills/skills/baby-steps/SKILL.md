@@ -39,6 +39,11 @@ small change at a time, with the reasoning attached.
 - **Red is fine between steps.** A step does not have to end with green tests;
   a temporarily failing test is accepted. Never make a step bigger just to get
   back to green — small, reviewable steps beat a green state.
+- **Keep going until done.** After a step is applied and verified, show the
+  next step (diff + approval prompt) in the same turn — never wait to be told
+  to continue. Stop only when waiting for approval, or when the task (or the
+  current PRD/plan slice) is fully done. Unsure what comes next? Ask the user
+  a focused question — never stop silently.
 - **Never commit on your own.** Applying a step does not commit. Commits are
   proposed as separate steps with their own approval.
 - **Speak the user's language.** Reply in the language the user writes in.
@@ -104,8 +109,20 @@ suggest the `clarify` or `vertical-slice` skill instead.
    the chat, then ask for approval the same way. Commit only after explicit
    approval.
 
-6. **Continue** with the next step (back to 1) until the task is done. Then say
-   so in one or two sentences.
+6. **Continue — in the same turn.** Right after applying and verifying, show
+   the next step (back to 1: diff + approval prompt) in the same response.
+   Never end the turn with only a verification report, and never wait for the
+   user to say "go on".
+   - You may stop only in two situations: you are **waiting for approval**,
+     or the task (or the current slice of the PRD/plan) is **fully done** —
+     every point is covered.
+   - If you are unsure what the next step is, do **not** stop silently: ask
+     the user one focused question (e.g. which of two options, or whether a
+     point is in scope), then continue from the answer.
+   - When you think you are done, check the task/PRD points one by one and
+     state for each what covers it (file, test or commit). If any point is
+     not covered, it's not done — propose the next step for it. Otherwise say
+     the task is done in one or two sentences.
 
 ## Step format
 
