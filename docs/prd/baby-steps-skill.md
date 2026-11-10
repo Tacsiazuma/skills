@@ -30,7 +30,8 @@ Egy lépés menete:
    - **Átugrás / nagyobb lépés engedélyezése erre a részre**: az agent az adott résznél nagyobb lépést is tehet.
 6. Alkalmazás után lefut a releváns teszt vagy build, és az agent jelenti az eredményt.
 7. Ha összeállt egy nagyobb logikai egység, az agent **commitot javasol**. A commit külön lépés, külön jóváhagyással.
-8. A ciklus a következő lépéssel folytatódik.
+8. A ciklus **megszakítás nélkül** a következő lépéssel folytatódik: az agent a lépés alkalmazása és ellenőrzése után **ugyanabban a körben magától** megmutatja a következő lépést, nem vár külön felszólításra.
+9. A ciklus akkor ér véget, amikor a feladat (vagy a PRD / terv aktuális szelete) **minden pontja** megvan. Ha az agent nem biztos benne, mi a következő lépés, **nem áll meg csendben**, hanem célzott kérdést tesz fel a felhasználónak.
 
 ## In scope
 
@@ -41,6 +42,8 @@ Egy lépés menete:
 - Minden alkalmazott lépés után a releváns tesztek vagy a build futtatása, az eredmény jelentése (a piros eredmény is csak információ, nem hiba).
 - Jóváhagyás kérése abban a formában, ami az adott környezetben elérhető. Az `AskUserQuestion` az előnyben részesített, ha van.
 - Commit javasolása nagyobb logikai egység után, külön lépésként.
+
+- Folytonosság: az agent csak két helyzetben áll meg: jóváhagyásra vár, vagy a feladat kész. Jóváhagyás és alkalmazás után sosem marad ott, hogy a felhasználónak kelljen szólni a folytatáshoz.
 
 ## Out of scope
 
@@ -55,6 +58,7 @@ Egy lépés menete:
 - Jóváhagyás előtt a fájlrendszer nem változik.
 - Egy tipikus lépés diffje nagyjából 20 sor vagy kisebb, akkor is, ha emiatt a teszt köztesen piros marad.
 - A felhasználó minden lépésnél látja a miértet, és a négy válasz (jóváhagy, módosít, elvet, nagyobb lépés) mindegyike kezelve van.
+- A fejlesztés közben az agent nem áll meg a feladat befejezése előtt: alkalmazott lépés után mindig vagy a következő lépés jön, vagy célzott kérdés, vagy a "kész" jelzés a hiányzó pontok nélkül.
 - Commit csak külön javaslatra és külön jóváhagyás után készül.
 
 ## Constraints
