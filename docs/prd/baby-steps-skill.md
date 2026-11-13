@@ -20,18 +20,19 @@ User: the developer who works with an agent on an implementation and wants to st
 How a step goes:
 
 1. The skill's input is an arbitrary task. If there is a PRD or a vertical-slice plan, it works from that; if not, from the description.
-2. The agent proposes **only the next step**, without a full list of steps.
-3. It describes **what it will do and why**.
-4. It shows the planned change (diff), but **does not modify anything** until it is approved.
-5. The user responds:
-   - **Approve**: the agent applies the change. No commit is made at this point.
+2. **At the very start, once**, the agent asks whether to document the steps as they are accepted. If yes, it also asks where the markdown should live (default: `docs/steps/<slug>.md`). If no, nothing is documented and the rest of the flow is unchanged.
+3. The agent proposes **only the next step**, without a full list of steps.
+4. It describes **what it will do and why**.
+5. It shows the planned change (diff), but **does not modify anything** until it is approved.
+6. The user responds:
+   - **Approve**: the agent applies the change. If documentation is on, it appends the step's entry to the steps markdown in the same moment. No commit is made at this point.
    - **Request changes**: the agent reworks it and shows it again.
    - **Reject**: the agent proposes a different approach.
    - **Skip / allow a bigger step for this part**: the agent may take a bigger step for that part.
-6. After applying, the relevant test or build runs, and the agent reports the result.
-7. When a larger logical unit has come together, the agent **proposes a commit**. The commit is a separate step, with separate approval.
-8. The cycle continues with the next step **without interruption**: after applying and verifying a step, the agent shows the next step **on its own, in the same turn**, without waiting for a separate prompt.
-9. The cycle ends when **every item** of the task (or of the current slice of the PRD / plan) is done. If the agent is unsure what the next step is, it **does not stop silently**; instead it asks the user a targeted question.
+7. After applying, the relevant test or build runs, and the agent reports the result.
+8. When a larger logical unit has come together, the agent **proposes a commit**. The commit is a separate step, with separate approval.
+9. The cycle continues with the next step **without interruption**: after applying and verifying a step, the agent shows the next step **on its own, in the same turn**, without waiting for a separate prompt.
+10. The cycle ends when **every item** of the task (or of the current slice of the PRD / plan) is done. If the agent is unsure what the next step is, it **does not stop silently**; instead it asks the user a targeted question.
 
 ## In scope
 
@@ -42,6 +43,7 @@ How a step goes:
 - After every applied step, running the relevant tests or the build and reporting the result (a red result is just information too, not an error).
 - Asking for approval in whatever form is available in the given environment. `AskUserQuestion` is preferred when available.
 - Proposing a commit after a larger logical unit, as a separate step.
+- **Optional step documentation:** at the start the agent asks whether to document the steps (and where; default `docs/steps/<slug>.md`, one file per task, asked at the start). When on, every **accepted** step automatically appends an entry to that markdown, containing **what, why, the touched file and the full diff**. The entry is written together with applying the step, without separate approval, and is an exception to the "one file per step" rule. Only the final accepted version of a step is recorded; rejected or reworked variants are not. The markdown is part of the commit, so a reviewer can read the logical steps there.
 
 - Continuity: the agent stops in only two situations: it is waiting for approval, or the task is done. After approval and applying, it never sits there waiting for the user to say something before continuing.
 
@@ -59,6 +61,8 @@ How a step goes:
 - The diff of a typical step is roughly 20 lines or smaller, even if this leaves the test temporarily red.
 - The user sees the why at every step, and each of the four responses (approve, request changes, reject, bigger step) is handled.
 - During development the agent does not stop before the task is finished: after an applied step there is always either the next step, a targeted question, or the "done" signal with no missing items.
+- If documentation is on, every accepted step has an entry (what, why, file, full diff) in the steps markdown, rejected variants do not, and the file is included in the commit.
+- The documentation question is asked once at the start, not per step.
 - A commit is only made upon a separate proposal and after separate approval.
 
 ## Constraints
@@ -73,4 +77,5 @@ Assumptions (decided by the code or a reasonable default, not open questions):
 - "Allow a bigger step" applies to the given part; on the next topic the agent returns to small steps.
 - If the test is red after a step, the agent reports it and proposes the next small step (either the fix or the planned continuation); it does not change things silently. **It never proposes a bigger change because of a red test**: the principle of small, easily reviewable steps is stronger than a green state.
 - The diff is shown as text (a code block); no separate tool is needed for it.
+- The steps markdown is a normal file in the repo: its entry is appended automatically on approval, and the commit proposal lists it among the files. Entries are in the language of the user.
 - For this request there are no open questions left that the user could still answer.
