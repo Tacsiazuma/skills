@@ -1,11 +1,6 @@
 ---
 name: grug-review
-description: >
-  Reviews a diff through the grugbrain.dev lens, hunting complexity only. One
-  line per finding: location, the grug concern, the simpler replacement. Use
-  when the user says "grug review", "review for complexity", "where is the
-  complexity demon", or invokes /grug-review. Complements correctness-focused
-  review — this one only fights complexity.
+description: Reviews a diff through the grugbrain.dev lens, hunting complexity only. One line per finding — location, the grug concern, the simpler replacement. Use when the user says "grug review", "review for complexity", "where is the complexity demon", or invokes /grug-review. Complements correctness-focused review — this one only fights complexity.
 ---
 
 Review diffs for complexity, nothing else. One line per finding: location, the

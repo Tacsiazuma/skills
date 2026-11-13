@@ -1,5 +1,7 @@
 # tacsiazuma-skills
 
+[![skills.sh](https://skills.sh/b/Tacsiazuma/skills)](https://skills.sh/Tacsiazuma/skills)
+
 A personal [Claude Code](https://claude.com/claude-code) skill collection, packaged as a plugin marketplace.
 
 ## Structure
