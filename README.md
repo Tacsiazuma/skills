@@ -62,6 +62,28 @@ Most skills need nothing beyond the agent itself. Exception:
 
 Every tool below reads skills in the same Agent Skills format (`<skills-dir>/<skill>/SKILL.md` with `name` + `description` frontmatter), so no conversion is needed. Paths were checked against each tool's official docs (see [Sources](#sources)).
 
+### Any agent: `npx skills` (Vercel)
+
+[Vercel's `skills` CLI](https://github.com/vercel-labs/skills) ([skills.sh](https://skills.sh)) finds every skill under `plugins/*/skills/*` and installs it for one or more agents (Claude Code, Copilot, Codex, Cursor and many more). Tested with `skills` 1.8.1.
+
+```
+npx skills add Tacsiazuma/skills                          # all skills; prompts for agents in a terminal
+npx skills add Tacsiazuma/skills --list                   # list available skills, install nothing
+npx skills add Tacsiazuma/skills --skill clarify --skill grug   # only some skills
+```
+
+Target and scope:
+
+```
+npx skills add Tacsiazuma/skills -a claude-code -a cursor -y   # specific agents, no prompts
+npx skills add Tacsiazuma/skills -g -a codex                    # global (user-level)
+npx skills add Tacsiazuma/skills --all                          # all skills, all agents, no prompts
+```
+
+Project scope (the default) writes into the current directory (`.agents/skills/`, plus symlinks such as `.claude/skills/` for agents that need their own folder) and a `skills-lock.json`; `-g` installs to your home directory instead. `--copy` copies instead of symlinking. Agent ids include `claude-code`, `github-copilot`, `codex`, `cursor`; an invalid id prints the full list. Later: `npx skills update`, `npx skills remove`.
+
+Use this when you want one command for any agent or several at once; use the plugin marketplace for Claude Code/Copilot updates through the tool itself, or `install.sh` if you don't want a Node/npx dependency.
+
 ### Claude Code
 
 **Marketplace** (once pushed to GitHub, e.g. `tacsiazuma/skills`):
