@@ -19,7 +19,9 @@ small change at a time, with the reasoning attached.
   next move. The reasoning is the point; don't skip it.
 - **One file per step.** A step creates, edits or deletes exactly one file. If
   a logical change touches several files (e.g. a new function and its import
-  elsewhere), it is several consecutive steps.
+  elsewhere), it is several consecutive steps. The only exception is the
+  optional steps markdown (see *Step documentation*), which is updated
+  together with each accepted step.
 - **No change before approval.** Until the user approves, do not create, edit or
   delete any file. Show the proposed change only as a diff in a code block.
 - **Diff first, then ask.** Write the What, Why, file and full diff in a chat
@@ -60,7 +62,33 @@ Read the referenced files and the relevant code first. Breaking the work into a
 PRD or slices is out of scope; if the task is too vague to pick a first step,
 suggest the `clarify` or `vertical-slice` skill instead.
 
+## Step documentation (optional)
+
+**At the very start, once — before the first step** — ask whether to document
+the steps as they are accepted (`AskUserQuestion` when available, otherwise in
+plain chat). Ask it once per task, never per step.
+
+- **Yes:** also ask where the markdown should live. Default:
+  `docs/steps/<slug>.md`, one file per task (`<slug>` is a short kebab-case
+  name of the task).
+- **No:** nothing is documented; the rest of the flow is unchanged.
+
+When documentation is on:
+
+- Every **accepted** step automatically appends an entry to the steps markdown
+  in the same moment the step is applied: **what**, **why**, the touched
+  **file** and the **full diff**. No separate approval for the entry — it is
+  an explicit exception to the "one file per step" rule.
+- Only the final accepted version of a step is recorded. Rejected or reworked
+  variants are not.
+- Entries are written in the user's language.
+- The steps markdown is part of the commit: the commit proposal lists it among
+  the files, so a reviewer can read the logical steps there.
+
 ## The step loop
+
+0. **Ask about step documentation** — once, before the first step (see
+   *Step documentation*).
 
 1. **Show the next step in the chat.** In one message, state:
    - **What:** the change, in one or two sentences.
@@ -85,8 +113,9 @@ suggest the `clarify` or `vertical-slice` skill instead.
      for the current part.
 
 3. **Handle the answer.**
-   - *Approve:* apply exactly the shown diff — nothing more, nothing less. Do
-     not commit.
+   - *Approve:* apply exactly the shown diff — nothing more, nothing less. If
+     documentation is on, append the step's entry to the steps markdown in the
+     same moment. Do not commit.
    - *Request changes:* rework the step and show it again (back to 1).
    - *Reject:* propose a different approach as a new step (back to 1).
    - *Bigger step:* you may take larger steps, but **only for the current part**
@@ -105,8 +134,8 @@ suggest the `clarify` or `vertical-slice` skill instead.
 
 5. **Propose a commit when a unit is complete.** When a larger logical unit is
    done (a feature slice, a test with its implementation, a refactor),
-   propose a commit as its own step: list the files and the commit message in
-   the chat, then ask for approval the same way. Commit only after explicit
+   propose a commit as its own step: list the files (including the steps
+   markdown, if documentation is on) and the commit message in the chat, then ask for approval the same way. Commit only after explicit
    approval.
 
 6. **Continue — in the same turn.** Right after applying and verifying, show
@@ -169,6 +198,29 @@ Then, right after it, the approval dialog — short, no preview:
 Plain-chat fallback: the same message as above, ending with
 "Approve, request changes, reject, or allow a bigger step for this part?" —
 then stop.
+
+If step documentation is on, approving the step above also appends this entry
+to the steps markdown (e.g. `docs/steps/duration-endpoint.md`):
+
+~~~markdown
+## Step 3: Add `parseDuration` returning minutes for "1h30m"
+
+**Why:** The endpoint needs minutes; the failing test from the previous step
+pins this behavior, and parsing belongs in a pure helper so it stays testable.
+
+**File:** `src/duration.ts`
+
+```diff
+--- a/src/duration.ts
++++ b/src/duration.ts
+@@ -0,0 +1,5 @@
++export function parseDuration(input: string): number {
++  const m = /^(?:(\d+)h)?(?:(\d+)m)?$/.exec(input);
++  if (!m) throw new Error(`Invalid duration: ${input}`);
++  return Number(m[1] ?? 0) * 60 + Number(m[2] ?? 0);
++}
+```
+~~~
 
 ## Notes
 
