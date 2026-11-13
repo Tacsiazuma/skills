@@ -1,55 +1,55 @@
-# Automatikus verzióemelés és release (GitHub workflow)
+# Automatic version bump and release (GitHub workflow)
 
 ## Goal
 
-Egy GitHub Actions workflow, ami minden releváns `main`-re kerülő változás után automatikusan emeli a marketplace és a pluginok verzióját, és létrehoz hozzá egy GitHub release-t.
+A GitHub Actions workflow that, after every relevant change lands on `main`, automatically bumps the version of the marketplace and the plugins, and creates a GitHub release for it.
 
 ## Problem
 
-A verziók (`.claude-plugin/marketplace.json` `metadata.version`, a `plugin.json`-ok `version` mezői) kézzel vannak karbantartva, és már most eltérnek (marketplace `0.2.0`, pluginok `0.1.0`). Nincs tag és nincs release, így a felhasználók nem látják, mikor és mi változott.
+The versions (`.claude-plugin/marketplace.json` `metadata.version`, the `version` fields of the `plugin.json` files) are maintained by hand, and they already differ (marketplace `0.2.0`, plugins `0.1.0`). There are no tags and no releases, so users can't see when and what changed.
 
 ## Users and journeys
 
-Felhasználó: a repo gazdája (és a marketplace-ről skilleket telepítők).
+User: the repo owner (and people installing skills from the marketplace).
 
-1. Egy PR merge-elődik a `main`-re.
-2. A workflow lefut, kiszámolja a következő patch verziót, beírja a marketplace-be és az összes pluginba, commitol, taggel és release-t készít.
-3. A telepítők a marketplace-ben az új verziót látják, a release oldalon pedig a változásokat.
+1. A PR is merged into `main`.
+2. The workflow runs, computes the next patch version, writes it into the marketplace and all plugins, commits, tags and creates a release.
+3. Installers see the new version in the marketplace, and the changes on the release page.
 
 ## In scope
 
-- Új workflow: `.github/workflows/release.yml`.
-- Trigger: push a `main`-re, **kivéve** ha a változás kizárólag a `docs/` mappát érinti (`paths-ignore: docs/**`).
-- Verzióemelés: minden futás **patch** emelés (X.Y.Z → X.Y.Z+1). Kiindulás a marketplace `metadata.version` értéke (jelenleg `0.2.0`, tehát az első release `0.2.1`).
-- **Egy közös verzió**: a `marketplace.json` `metadata.version` és az összes `plugins/*/.claude-plugin/plugin.json` `version` mezője ugyanarra az értékre kerül (ez egyúttal összehangolja a jelenlegi eltérést).
-- A bump commit közvetlenül a `main`-re megy, a commit üzenetben `[skip ci]`, hogy ne indítson új futást.
-- Git tag `vX.Y.Z` és GitHub release automatikusan generált release notes-szal (a merge-elt PR-ekből).
+- New workflow: `.github/workflows/release.yml`.
+- Trigger: push to `main`, **except** when the change touches only the `docs/` folder (`paths-ignore: docs/**`).
+- Version bump: every run is a **patch** bump (X.Y.Z → X.Y.Z+1). The starting point is the marketplace `metadata.version` value (currently `0.2.0`, so the first release is `0.2.1`).
+- **One shared version**: the `marketplace.json` `metadata.version` and the `version` field of every `plugins/*/.claude-plugin/plugin.json` are set to the same value (this also aligns the current mismatch).
+- The bump commit goes directly to `main`, with `[skip ci]` in the commit message so it doesn't trigger a new run.
+- Git tag `vX.Y.Z` and a GitHub release with automatically generated release notes (from the merged PRs).
 
 ## Out of scope
 
-- Minor és major verzióemelés (conventional commits, kézi választó): később, ha kell.
-- Release PR / külön jóváhagyási lépés.
-- Verzió emelése pluginonként külön-külön.
-- Changelog fájl vezetése a repóban.
-- Új plugin automatikus felvétele a `marketplace.json` `plugins` listájába (a workflow csak a verziókat írja).
+- Minor and major version bumps (conventional commits, manual selector): later, if needed.
+- Release PR / separate approval step.
+- Bumping versions separately per plugin.
+- Maintaining a changelog file in the repo.
+- Automatically adding new plugins to the `plugins` list of `marketplace.json` (the workflow only writes the versions).
 
 ## Success criteria
 
-- Egy nem `docs/`-ot érintő merge után néhány percen belül van új `vX.Y.Z` tag és GitHub release.
-- A `marketplace.json` és minden `plugin.json` ugyanazt a verziót tartalmazza az új `main`-en.
-- Docs-only push nem hoz létre release-t.
-- A bump commit nem indít újabb workflow futást (nincs végtelen ciklus).
-- Két egymás utáni merge két külön, növekvő verziót kap, ütközés nélkül.
+- After a merge that doesn't touch `docs/`, a new `vX.Y.Z` tag and GitHub release exist within a few minutes.
+- `marketplace.json` and every `plugin.json` contain the same version on the new `main`.
+- A docs-only push does not create a release.
+- The bump commit does not trigger another workflow run (no infinite loop).
+- Two consecutive merges get two separate, increasing versions, without conflicts.
 
 ## Constraints
 
-- GitHub Actions, a beépített `GITHUB_TOKEN`-nel (`permissions: contents: write`), külső secret nélkül.
-- A `main` ágon nincs olyan branch protection, ami a bot push-t tiltaná (lásd feltevések).
-- A JSON fájlok módosítása `jq`-val vagy hasonló, a formázást nem borító módon.
+- GitHub Actions, using the built-in `GITHUB_TOKEN` (`permissions: contents: write`), with no external secret.
+- The `main` branch has no branch protection that would block the bot's push (see assumptions).
+- The JSON files are modified with `jq` or similar, in a way that doesn't break the formatting.
 
 ## Open questions and assumptions
 
-- Feltevés: a `main`-en nincs branch protection, amely a `GITHUB_TOKEN`-es push-t blokkolná. Ha van, a workflow-t ehhez kell igazítani (pl. PAT vagy bypass szabály).
-- Feltevés: párhuzamos futások ellen `concurrency` csoport védi a workflow-t, hogy a verziók ne ütközzenek.
-- Feltevés: a tag formátuma `vX.Y.Z`, a release címe a tag neve.
-- Feltevés: a bot commit szerzője a `github-actions[bot]`.
+- Assumption: `main` has no branch protection that would block a push made with `GITHUB_TOKEN`. If it does, the workflow must be adapted to it (e.g. a PAT or a bypass rule).
+- Assumption: a `concurrency` group protects the workflow against parallel runs, so the versions don't collide.
+- Assumption: the tag format is `vX.Y.Z`, and the release title is the tag name.
+- Assumption: the author of the bot commit is `github-actions[bot]`.
