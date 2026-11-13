@@ -39,7 +39,6 @@ A personal [Claude Code](https://claude.com/claude-code) skill collection, packa
 | `grug-review` | Reviews a diff for complexity only, one line per finding (`say-no`, `cut-point`, `demon`, ...). |
 | `vertical-slice` | Turns a PRD into a technical plan + task breakdown sliced into vertical, demoable increments — value-first, not layer-by-layer. |
 | `baby-steps` | Implements a task in tiny, individually approved steps — proposes only the next ~20-line, single-file change with its reason, shows the diff in chat, applies it after approval, runs tests, never commits on its own. |
-| `github-issue` | Creates a GitHub issue in a repo, collecting title, body, labels and assignees interactively. |
 
 ### `product-skills`
 
