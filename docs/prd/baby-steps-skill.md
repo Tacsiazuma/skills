@@ -2,75 +2,75 @@
 
 ## Goal
 
-Új skill a `dev-skills` pluginban `baby-steps` néven: az implementációt az agenttel apró, egyenként jóváhagyott lépésekben lehet végigvinni, a lépések indoklásával együtt. A végén nincs 600 soros diff, amit egyben kell reviewolni.
+A new skill in the `dev-skills` plugin, named `baby-steps`: it lets the user carry an implementation through with the agent in tiny, individually approved steps, each with its rationale. At the end there is no 600-line diff that has to be reviewed in one go.
 
 ## Problem
 
-Ha az agent egyben megírja a változást, a felhasználó csak a végén, a review során találkozik vele, és ott két gond jelentkezik egyszerre:
+When the agent writes the change in one go, the user only meets it at the end, during review, and two problems show up at once:
 
-- a diff túl nagy ahhoz, hogy érdemben át lehessen nézni;
-- nem látszik, miért olyan a kód, amilyen: a döntések indoka elveszik.
+- the diff is too large to review meaningfully;
+- it is not visible why the code is the way it is: the reasoning behind the decisions is lost.
 
-A skill célja, hogy a review menet közben, lépésenként történjen meg, a miértekkel együtt.
+The goal of the skill is for the review to happen along the way, step by step, together with the whys.
 
 ## Users and journeys
 
-Felhasználó: a fejlesztő, aki egy agenttel dolgozik egy implementáción, és kézben akarja tartani, mi kerül be a kódba.
+User: the developer who works with an agent on an implementation and wants to stay in control of what goes into the code.
 
-Egy lépés menete:
+How a step goes:
 
-1. A skill bemenete egy tetszőleges feladat. Ha van PRD vagy vertical-slice terv, abból dolgozik, ha nincs, a leírásból.
-2. Az agent **csak a következő lépést** javasolja, teljes lépéslista nélkül.
-3. Leírja, **mit és miért** fog csinálni.
-4. Megmutatja a tervezett változást (diffet), de **nem módosít semmit**, amíg nincs jóváhagyás.
-5. A felhasználó válaszol:
-   - **Jóváhagyom**: az agent alkalmazza a változást. Commit ilyenkor nem készül.
-   - **Módosítást kérek**: az agent átdolgozza és újra megmutatja.
-   - **Elvetem**: az agent másik megközelítést javasol.
-   - **Átugrás / nagyobb lépés engedélyezése erre a részre**: az agent az adott résznél nagyobb lépést is tehet.
-6. Alkalmazás után lefut a releváns teszt vagy build, és az agent jelenti az eredményt.
-7. Ha összeállt egy nagyobb logikai egység, az agent **commitot javasol**. A commit külön lépés, külön jóváhagyással.
-8. A ciklus **megszakítás nélkül** a következő lépéssel folytatódik: az agent a lépés alkalmazása és ellenőrzése után **ugyanabban a körben magától** megmutatja a következő lépést, nem vár külön felszólításra.
-9. A ciklus akkor ér véget, amikor a feladat (vagy a PRD / terv aktuális szelete) **minden pontja** megvan. Ha az agent nem biztos benne, mi a következő lépés, **nem áll meg csendben**, hanem célzott kérdést tesz fel a felhasználónak.
+1. The skill's input is an arbitrary task. If there is a PRD or a vertical-slice plan, it works from that; if not, from the description.
+2. The agent proposes **only the next step**, without a full list of steps.
+3. It describes **what it will do and why**.
+4. It shows the planned change (diff), but **does not modify anything** until it is approved.
+5. The user responds:
+   - **Approve**: the agent applies the change. No commit is made at this point.
+   - **Request changes**: the agent reworks it and shows it again.
+   - **Reject**: the agent proposes a different approach.
+   - **Skip / allow a bigger step for this part**: the agent may take a bigger step for that part.
+6. After applying, the relevant test or build runs, and the agent reports the result.
+7. When a larger logical unit has come together, the agent **proposes a commit**. The commit is a separate step, with separate approval.
+8. The cycle continues with the next step **without interruption**: after applying and verifying a step, the agent shows the next step **on its own, in the same turn**, without waiting for a separate prompt.
+9. The cycle ends when **every item** of the task (or of the current slice of the PRD / plan) is done. If the agent is unsure what the next step is, it **does not stop silently**; instead it asks the user a targeted question.
 
 ## In scope
 
-- Új `SKILL.md`: `plugins/dev-skills/skills/baby-steps/SKILL.md`, angol nyelven, mint a többi skill. Az agent a felhasználó nyelvén kommunikál.
-- Bejegyzés a `README.md` skill-táblázatába.
-- Lépésméret: egy logikai változás, jellemzően 20 sor vagy kevesebb. Példák: egy függvény hozzáadása, egy endpoint boilerplate-je, egy új `if` ág.
-- Teszt-először szemlélet: a teszt jellemzően külön baby step, a következő lépés teszi zölddé. A lépések **nem követik szigorúan a TDD fázisait**, és nem kell mindegyiknek zöld teszttel végződnie: a köztes piros állapot elfogadott.
-- Minden alkalmazott lépés után a releváns tesztek vagy a build futtatása, az eredmény jelentése (a piros eredmény is csak információ, nem hiba).
-- Jóváhagyás kérése abban a formában, ami az adott környezetben elérhető. Az `AskUserQuestion` az előnyben részesített, ha van.
-- Commit javasolása nagyobb logikai egység után, külön lépésként.
+- A new `SKILL.md`: `plugins/dev-skills/skills/baby-steps/SKILL.md`, in English, like the other skills. The agent communicates in the user's language.
+- An entry in the skill table of `README.md`.
+- Step size: one logical change, typically 20 lines or fewer. Examples: adding a function, the boilerplate of an endpoint, a new `if` branch.
+- Test-first mindset: the test is typically a separate baby step, and the next step makes it green. The steps **do not strictly follow the TDD phases**, and not every one has to end with a green test: an intermediate red state is acceptable.
+- After every applied step, running the relevant tests or the build and reporting the result (a red result is just information too, not an error).
+- Asking for approval in whatever form is available in the given environment. `AskUserQuestion` is preferred when available.
+- Proposing a commit after a larger logical unit, as a separate step.
 
-- Folytonosság: az agent csak két helyzetben áll meg: jóváhagyásra vár, vagy a feladat kész. Jóváhagyás és alkalmazás után sosem marad ott, hogy a felhasználónak kelljen szólni a folytatáshoz.
+- Continuity: the agent stops in only two situations: it is waiting for approval, or the task is done. After approval and applying, it never sits there waiting for the user to say something before continuing.
 
 ## Out of scope
 
-- A feladat PRD-vé vagy vertical slice-okra bontása (ezt a `clarify` és a `vertical-slice` skill végzi).
-- Teljes, előre rögzített lépéslista vagy haladási tábla vezetése.
-- Automatikus commit jóváhagyás után.
-- Kódreview a végén (a skill célja éppen ennek kiváltása).
+- Turning the task into a PRD or breaking it into vertical slices (that is done by the `clarify` and `vertical-slice` skills).
+- Maintaining a full, predefined list of steps or a progress table.
+- Automatic commit after approval.
+- Code review at the end (the very purpose of the skill is to replace it).
 
 ## Success criteria
 
-- Nincs olyan diff, amit a felhasználó egyben, indoklás nélkül kapna meg: minden változás egy javasolt, megindokolt lépésként érkezik.
-- Jóváhagyás előtt a fájlrendszer nem változik.
-- Egy tipikus lépés diffje nagyjából 20 sor vagy kisebb, akkor is, ha emiatt a teszt köztesen piros marad.
-- A felhasználó minden lépésnél látja a miértet, és a négy válasz (jóváhagy, módosít, elvet, nagyobb lépés) mindegyike kezelve van.
-- A fejlesztés közben az agent nem áll meg a feladat befejezése előtt: alkalmazott lépés után mindig vagy a következő lépés jön, vagy célzott kérdés, vagy a "kész" jelzés a hiányzó pontok nélkül.
-- Commit csak külön javaslatra és külön jóváhagyás után készül.
+- There is no diff the user receives in one go, without rationale: every change arrives as a proposed, justified step.
+- The file system does not change before approval.
+- The diff of a typical step is roughly 20 lines or smaller, even if this leaves the test temporarily red.
+- The user sees the why at every step, and each of the four responses (approve, request changes, reject, bigger step) is handled.
+- During development the agent does not stop before the task is finished: after an applied step there is always either the next step, a targeted question, or the "done" signal with no missing items.
+- A commit is only made upon a separate proposal and after separate approval.
 
 ## Constraints
 
-- A repo konvenciója: `plugins/<plugin>/skills/<név>/SKILL.md`, frontmatterrel (`name`, `description`).
-- A skill környezetfüggetlen: irodán kívül is működnie kell, ezért nem függhet az `office-ask`-tól.
+- The repo convention: `plugins/<plugin>/skills/<name>/SKILL.md`, with frontmatter (`name`, `description`).
+- The skill is environment-independent: it must also work outside the office, so it cannot depend on `office-ask`.
 
 ## Open questions and assumptions
 
-Feltevések (a kód vagy az észszerű alapértelmezés eldönti, nem kérdéses):
+Assumptions (decided by the code or a reasonable default, not open questions):
 
-- A "nagyobb lépés engedélyezése" az adott résznél érvényes, a következő témánál az agent visszatér a kis lépésekhez.
-- Ha egy lépés után a teszt piros, az agent ezt jelenti, és a következő kis lépést javasolja (akár a javítást, akár a tervezett folytatást), nem módosít csendben. **Piros teszt miatt soha nem javasol nagyobb változtatást**: a kis, könnyen átnézhető lépések elve erősebb, mint a zöld állapot.
-- A diff megmutatása szövegesen történik (kódblokk), nem kell hozzá külön eszköz.
-- Egy kérés kapcsán nincs nyitott kérdés, amit a felhasználó még meg tudna válaszolni.
+- "Allow a bigger step" applies to the given part; on the next topic the agent returns to small steps.
+- If the test is red after a step, the agent reports it and proposes the next small step (either the fix or the planned continuation); it does not change things silently. **It never proposes a bigger change because of a red test**: the principle of small, easily reviewable steps is stronger than a green state.
+- The diff is shown as text (a code block); no separate tool is needed for it.
+- For this request there are no open questions left that the user could still answer.
